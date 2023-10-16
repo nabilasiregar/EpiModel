@@ -91,7 +91,8 @@ def update_graph(selected_time):
     # Assuming default beta and gamma values for demonstration
     default_beta = 0.05
     default_gamma = 0.005
-    key = ("Barabási-Albert", default_beta, default_gamma)
+    model_network = "Barabási-Albert"
+    key = (model_network, default_beta, default_gamma)
     current_status = results[key][selected_time]['status']
 
     node_colors = []
