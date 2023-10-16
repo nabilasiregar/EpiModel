@@ -52,9 +52,26 @@ for beta in betas:
 # Initialize Dash app
 app = dash.Dash(__name__)
 
-# Layout of the web application
 app.layout = html.Div([
     dcc.Graph(id='network-graph'),
+    dcc.Dropdown(
+        id='network-dropdown',
+        options=[{'label': name, 'value': name} for name in ["Barabási-Albert", "Watts-Strogatz", "Erdős-Rényi"]],
+        value="Watts-Strogatz",
+        clearable=False
+    ),
+    dcc.Dropdown(
+        id='beta-dropdown',
+        options=[{'label': str(beta), 'value': beta} for beta in betas],
+        value=betas[0],  # default to the first value
+        clearable=False
+    ),
+    dcc.Dropdown(
+        id='gamma-dropdown',
+        options=[{'label': str(gamma), 'value': gamma} for gamma in gammas],
+        value=gammas[0],  # default to the first value
+        clearable=False
+    ),
     dcc.Slider(
         id='time-slider',
         min=0,
@@ -65,22 +82,20 @@ app.layout = html.Div([
     )
 ])
 
-
 @app.callback(
     Output('network-graph', 'figure'),
-    [Input('time-slider', 'value')]
+    [Input('network-dropdown', 'value'),
+     Input('beta-dropdown', 'value'),
+     Input('gamma-dropdown', 'value'),
+     Input('time-slider', 'value')]
 )
 
-def update_graph(selected_time):
-    model_name = "Watts-Strogatz"
-    default_beta = 0.05
-    default_gamma = 0.005
-
-    if model_name == "Barabási-Albert":
+def update_graph(selected_network, selected_beta, selected_gamma, selected_time):
+    if selected_network == "Barabási-Albert":
         network = ba_graph
-    elif model_name == "Watts-Strogatz": 
+    elif selected_network == "Watts-Strogatz": 
         network = ws_graph
-    elif model_name == "Erdős-Rényi":
+    elif selected_network == "Erdős-Rényi":
         network = er_graph
 
     pos = nx.spring_layout(network)
@@ -96,7 +111,7 @@ def update_graph(selected_time):
     node_y = [pos[node][1] for node in network.nodes()]
 
     #Colors
-    key = (model_name, default_beta, default_gamma)
+    key = (selected_network, selected_beta, selected_gamma)
     current_status = results[key][selected_time]['status']
 
     node_colors = []
