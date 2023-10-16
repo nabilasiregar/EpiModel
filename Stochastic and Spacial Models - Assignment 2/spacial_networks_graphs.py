@@ -44,7 +44,6 @@ for beta in betas:
             model.set_initial_status(config)
             iterations = model.iteration_bunch(200)
             
-            # Store results
             key = (name, beta, gamma)
             results[key] = iterations
 
@@ -64,16 +63,13 @@ app.layout = html.Div([
     )
 ])
 
-# ... [rest of the imports and code]
 
 @app.callback(
     Output('network-graph', 'figure'),
     [Input('time-slider', 'value')]
 )
 def update_graph(selected_time):
-    # Use the selected_time to get the state of the nodes at that time
-    # For demonstration, using the Barabási-Albert graph (ba_model)
-    # You can extend this for other graphs
+
 
     pos = nx.spring_layout(ba_graph)
     edge_x = []
@@ -87,8 +83,7 @@ def update_graph(selected_time):
     node_x = [pos[node][0] for node in ba_graph.nodes()]
     node_y = [pos[node][1] for node in ba_graph.nodes()]
 
-    # Get the node colors based on their state at the selected_time
-    # Assuming default beta and gamma values for demonstration
+    #Colors
     default_beta = 0.05
     default_gamma = 0.005
     key = ("Barabási-Albert", default_beta, default_gamma)
@@ -96,11 +91,11 @@ def update_graph(selected_time):
 
     node_colors = []
     for node, status in current_status.items():
-        if status == 0:  # Susceptible
+        if status == 0:  
             node_colors.append("yellow")
-        elif status == 1:  # Infected
+        elif status == 1:  
             node_colors.append("red")
-        else:  # Recovered
+        else:  
             node_colors.append("green")
 
     fig = go.Figure(
