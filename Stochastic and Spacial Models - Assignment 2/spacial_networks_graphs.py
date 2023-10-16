@@ -7,6 +7,8 @@ from dash import dcc, html
 from dash.dependencies import Input, Output
 import networkx as nx
 import plotly.graph_objects as go
+# for debugging
+import pdb
 
 num_of_nodes = 1000
 
@@ -68,26 +70,33 @@ app.layout = html.Div([
     Output('network-graph', 'figure'),
     [Input('time-slider', 'value')]
 )
+
 def update_graph(selected_time):
+    model_name = "Watts-Strogatz"
+    default_beta = 0.05
+    default_gamma = 0.005
 
+    if model_name == "Barabási-Albert":
+        network = ba_graph
+    elif model_name == "Watts-Strogatz": 
+        network = ws_graph
+    elif model_name == "Erdős-Rényi":
+        network = er_graph
 
-    pos = nx.spring_layout(ba_graph)
+    pos = nx.spring_layout(network)
     edge_x = []
     edge_y = []
-    for edge in ba_graph.edges():
+    for edge in network.edges():
         x0, y0 = pos[edge[0]]
         x1, y1 = pos[edge[1]]
         edge_x.extend([x0, x1, None])
         edge_y.extend([y0, y1, None])
 
-    node_x = [pos[node][0] for node in ba_graph.nodes()]
-    node_y = [pos[node][1] for node in ba_graph.nodes()]
+    node_x = [pos[node][0] for node in network.nodes()]
+    node_y = [pos[node][1] for node in network.nodes()]
 
     #Colors
-    default_beta = 0.05
-    default_gamma = 0.005
-    model_network = "Barabási-Albert"
-    key = (model_network, default_beta, default_gamma)
+    key = (model_name, default_beta, default_gamma)
     current_status = results[key][selected_time]['status']
 
     node_colors = []
