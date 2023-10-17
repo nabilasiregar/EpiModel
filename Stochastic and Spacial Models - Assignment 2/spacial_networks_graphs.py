@@ -15,20 +15,17 @@ num_of_nodes = 1000
 # Barabási-Albert
 num_of_edges = 5
 ba_graph = nx.barabasi_albert_graph(num_of_nodes, num_of_edges)
-ba_model = ep.SIRModel(ba_graph)
 
 # Watts-Strogatz
 k_nearest_neighbors = 6
 rewiring_probability = 0.1
 ws_graph = nx.watts_strogatz_graph(num_of_nodes, k_nearest_neighbors, rewiring_probability)
-ws_model = ep.SIRModel(ws_graph)
 
 # Erdős-Rényi
 edge_creation_probability = 0.1
 er_graph = nx.erdos_renyi_graph(num_of_nodes, edge_creation_probability)
-er_model = ep.SIRModel(er_graph)
 
-# Parameters to vary
+# Disease parameters to vary
 betas = [0.05, 0.1, 0.3]
 gammas = [0.005, 0.1]
 
@@ -39,7 +36,7 @@ for beta in betas:
         config = mc.Configuration()
         config.add_model_parameter('beta', beta)
         config.add_model_parameter('gamma', gamma)
-        config.add_model_initial_configuration("Infected", [i for i in range(int(0.1*1000))]) # 10% initially infected
+        config.add_model_parameter("percentage_infected", 0.1) # 10% initially infected
 
         for graph, name in [(ba_graph, "Barabási-Albert"), (ws_graph, "Watts-Strogatz"), (er_graph, "Erdős-Rényi")]:
             model = ep.SIRModel(graph)
@@ -111,17 +108,10 @@ def update_graph(selected_network, selected_beta, selected_gamma, selected_time)
     node_y = [pos[node][1] for node in network.nodes()]
 
     #Colors
-    key = (selected_network, selected_beta, selected_gamma)
-    current_status = results[key][selected_time]['status']
-
-    node_colors = []
-    for node, status in current_status.items():
-        if status == 0:  
-            node_colors.append("yellow")
-        elif status == 1:  
-            node_colors.append("red")
-        else:  
-            node_colors.append("green")
+    current_status = results[(key)][selected_time]['status']
+    node_colors = [ "yellow" if current_status.get(node) == 0 
+               else "red" if current_status.get(node) == 1 
+               else "green" for node in network.nodes() ]
 
     fig = go.Figure(
         data=[
