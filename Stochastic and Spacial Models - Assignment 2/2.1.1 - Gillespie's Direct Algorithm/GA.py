@@ -51,8 +51,8 @@ def gillespie_SIR(S0, I0, R0, beta, gamma, max_time):
     return times, S_values, I_values, R_values
 
 # Parameters
-S0 = 990
-I0 = 10
+S0 = 200
+I0 = 5
 R0 = 0
 beta = 0.3
 gamma = 0.1

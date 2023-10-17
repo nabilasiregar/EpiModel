@@ -51,7 +51,7 @@ def gillespie_SIR(S0, I0, R0, beta, gamma, max_time):
     return times, S_values, I_values, R_values
 
 # Parameters
-S0 = 990
+S0 = 9990
 I0 = 10
 R0 = 0
 beta = 0.3
@@ -103,5 +103,14 @@ plt.xlabel("Time")
 plt.ylabel("Population")
 plt.title(f"Comparison of Deterministic and Stochastic SIR Models ({num_runs} runs)")
 plt.legend()
+plt.grid(True)
+plt.show()
+
+#make a histogram of the final number of infected people
+plt.figure(figsize=(10,6))
+plt.hist(all_I[-1], bins=20)
+plt.xlabel("Number of infected people")
+plt.ylabel("Frequency")
+plt.title(f"Histogram of final number of infected people ({num_runs} runs)")
 plt.grid(True)
 plt.show()

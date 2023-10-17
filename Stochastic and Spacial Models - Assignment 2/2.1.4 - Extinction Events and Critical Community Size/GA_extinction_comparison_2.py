@@ -1,5 +1,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
+plt.rcParams.update({'font.size': 15})
+plt.rcParams['text.usetex'] = True
 
 def gillespie_SIR(S0, I0, R0, beta, gamma, max_time):
     S, I, R = S0, I0, R0
@@ -44,16 +46,16 @@ R0_values = np.concatenate([
     np.arange(0.1, 1, 0.1),
     np.arange(1, 10, 0.5)
 ])
-N_values = [100, 500, 1000, 5000, 10000]
+N_values = [10, 50, 100, 500, 1000]
 gamma = 0.1  
-num_runs = 100
+num_runs = 1000
 max_time = 500  
 
 results = np.zeros((len(N_values), len(R0_values)))
 
 for i, N in enumerate(N_values):
     for j, R0 in enumerate(R0_values):
-        beta = R0 * gamma  # Calculate beta based on R0
+        beta = R0 * gamma  
         extinction_times = []
         
         for _ in range(num_runs):
@@ -69,9 +71,9 @@ for i, N in enumerate(N_values):
 # Plotting
 plt.figure(figsize=(12, 7))
 c = plt.contourf(R0_values, N_values, results, cmap='viridis', levels=100)
-plt.colorbar(c, label="Average Time to Extinction")
-plt.title("Impact of R0 and N on Time to Extinction")
-plt.xlabel("R0")
+plt.colorbar(c, label="Average Time to Extinction (Timesteps)")
+# plt.title(r"Impact of $R_0$ and $N$ on Time to Extinction")
+plt.xlabel("$R_0$")
 plt.ylabel("Population Size (N)")
 plt.grid(True)
 plt.show()

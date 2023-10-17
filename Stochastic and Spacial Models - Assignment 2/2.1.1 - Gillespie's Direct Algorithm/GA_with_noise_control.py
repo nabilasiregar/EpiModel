@@ -52,7 +52,7 @@ def gillespie_SIR_scaled(S0, I0, R0, beta, gamma, max_time, noise_scale=1):
 
 
 # Parameters
-S0 = 990
+S0 = 90
 I0 = 10
 R0 = 0
 beta = 0.3

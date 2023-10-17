@@ -82,6 +82,10 @@ app.layout = html.Div([
     )
 ])
 
+<<<<<<< Updated upstream
+=======
+
+>>>>>>> Stashed changes
 @app.callback(
     Output('network-graph', 'figure'),
     [Input('network-dropdown', 'value'),
@@ -89,6 +93,11 @@ app.layout = html.Div([
      Input('gamma-dropdown', 'value'),
      Input('time-slider', 'value')]
 )
+<<<<<<< Updated upstream
+=======
+def update_graph(selected_time):
+
+>>>>>>> Stashed changes
 
 def update_graph(selected_network, selected_beta, selected_gamma, selected_time):
     if selected_network == "Barabási-Albert":
@@ -111,7 +120,13 @@ def update_graph(selected_network, selected_beta, selected_gamma, selected_time)
     node_y = [pos[node][1] for node in network.nodes()]
 
     #Colors
+<<<<<<< Updated upstream
     key = (selected_network, selected_beta, selected_gamma)
+=======
+    default_beta = 0.05
+    default_gamma = 0.005
+    key = ("Barabási-Albert", default_beta, default_gamma)
+>>>>>>> Stashed changes
     current_status = results[key][selected_time]['status']
 
     node_colors = []

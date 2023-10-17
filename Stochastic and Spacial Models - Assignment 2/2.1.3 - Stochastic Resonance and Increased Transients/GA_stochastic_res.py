@@ -2,14 +2,15 @@ import numpy as np
 import matplotlib.pyplot as plt
 from scipy.integrate import odeint
 
-def SIR_model(y, t, beta, gamma):
+# Deterministic SIR model
+def SIR_demography(y, t, beta, gamma, Lambda, mu):
     S, I, R = y
-    dS_dt = -beta * S * I / (S + I + R)
-    dI_dt = beta * S * I / (S + I + R) - gamma * I
-    dR_dt = gamma * I
+    dS_dt = Lambda - beta * S * I / (S + I + R) - mu * S
+    dI_dt = beta * S * I / (S + I + R) - gamma * I - mu * I
+    dR_dt = gamma * I - mu * R
     return [dS_dt, dI_dt, dR_dt]
 
-def gillespie_SIR(S0, I0, R0, beta, gamma, max_time):
+def GA_with_demography(S0, I0, R0, beta, gamma, Lambda, mu, max_time):
     # Initial conditions
     S, I, R = S0, I0, R0
     t = 0
@@ -22,24 +23,41 @@ def gillespie_SIR(S0, I0, R0, beta, gamma, max_time):
         N = S + I + R
 
         # Calculate propensities
-        a1 = beta * S * I / N
-        a2 = gamma * I
-        a0 = a1 + a2
+        a1 = beta * S * I / N        # Transmission
+        a2 = gamma * I               # Recovery
+        a3 = Lambda                  # Birth
+        a4 = mu * S                  # Death of a susceptible
+        a5 = mu * I                  # Death of an infected
+        a6 = mu * R                  # Death of a recovered
+        
+        a0 = a1 + a2 + a3 + a4 + a5 + a6
 
         # Time until next event
         dt = -np.log(np.random.random()) / a0
         t += dt
 
         # Determine which event occurs
-        r = np.random.random()
-        if r < a1 / a0:
+        r = np.random.random() * a0
+        if r < a1:
             # Transmission event
             S -= 1
             I += 1
-        else:
+        elif r < a1 + a2:
             # Recovery event
             I -= 1
             R += 1
+        elif r < a1 + a2 + a3:
+            # Birth event
+            S += 1
+        elif r < a1 + a2 + a3 + a4:
+            # Death of a susceptible
+            S -= 1
+        elif r < a1 + a2 + a3 + a4 + a5:
+            # Death of an infected
+            I -= 1
+        else:
+            # Death of a recovered
+            R -= 1
 
         # Store results
         times.append(t)
@@ -48,6 +66,17 @@ def gillespie_SIR(S0, I0, R0, beta, gamma, max_time):
         R_values.append(R)
 
     return times, S_values, I_values, R_values
+
+# Parameters
+S0= 990
+I0=10
+R0=0
+beta = 0.3
+gamma = 0.1
+Lambda = 5  # birth rate
+mu = 0.01  # death rate
+max_time = 200
+t = np.linspace(0, max_time, 1000)
 
 # Define a function to measure the transient (deviation from deterministic equilibrium)
 def measure_transient(stochastic, deterministic):
@@ -62,9 +91,7 @@ gamma = 0.1
 max_time = 160
 t = np.linspace(0, max_time, 1000)
 
-# Solve ODE for deterministic SIR
-solution = odeint(SIR_model, [S0, I0, R0], t, args=(beta, gamma))
-S_det, I_det, R_det = solution.T
+
 
 # Parameters for the experiment
 N_values = [100, 500, 1000, 5000]
@@ -82,14 +109,14 @@ for N in N_values:
         S0 = N - I0 - R0
         
         # Run stochastic simulation
-        times, S_stoch, I_stoch, R_stoch = gillespie_SIR(S0, I0, R0, beta, gamma, max_time)
+        times, S_stoch, I_stoch, R_stoch = GA_with_demography(S0, I0, R0, beta, gamma, Lambda, mu, max_time)
         
         # Interpolate stochastic results onto common time grid
         S_stoch_interp = np.interp(t_common, times, S_stoch)
         I_stoch_interp = np.interp(t_common, times, I_stoch)
         
-        # Run deterministic model
-        solution = odeint(SIR_model, [S0, I0, R0], t_common, args=(beta, gamma))
+        # Solve ODE for deterministic SIR
+        solution = odeint(SIR_demography, [S0, I0, R0], t, args=(beta, gamma, Lambda, mu))
         S_det, I_det, R_det = solution.T
         
         # Measure transients
@@ -114,9 +141,9 @@ for i, res in enumerate(transients):
     ax = axes[i // len(beta_values)][i % len(beta_values)]
     
     # Plot on the current subplot
-    ax.plot(t_common, res['S_stoch'], label="Susceptible (Stochastic)", color="blue")
+    ax.plot(t_common, res['S_stoch'], label="Susceptible (Stochastic)", color="orange")
     ax.plot(t_common, res['I_stoch'], label="Infectious (Stochastic)", color="red")
-    ax.plot(t_common, res['S_det'], label="Susceptible (Deterministic)", color="blue", linestyle="--")
+    ax.plot(t_common, res['S_det'], label="Susceptible (Deterministic)", color="orange", linestyle="--")
     ax.plot(t_common, res['I_det'], label="Infectious (Deterministic)", color="red", linestyle="--")
     
     ax.set_title(f"N={res['N']}, β={res['beta']}\nTransient S = {res['transient_S']:.2f}, I = {res['transient_I']:.2f}")
