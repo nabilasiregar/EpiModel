@@ -82,21 +82,13 @@ t = np.linspace(0, max_time, 1000)
 def measure_transient(stochastic, deterministic):
     return np.max(np.abs(stochastic - deterministic))
 
-# Parameters
-S0 = 990
-I0 = 10
-R0 = 0
-beta = 0.3
-gamma = 0.1
-max_time = 160
-t = np.linspace(0, max_time, 1000)
 
 
 
 # Parameters for the experiment
 N_values = [100, 500, 1000, 5000]
 beta_values = [0.1, 0.2, 0.3, 0.4]
-gamma = 0.1  # Fixed recovery rate for simplicity
+gamma = 0.1 
 max_time = 160
 t_common = np.linspace(0, max_time, 1000)
 

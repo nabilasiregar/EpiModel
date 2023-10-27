@@ -16,7 +16,6 @@ def GA_with_demography_and_forcing(S0, I0, R0, beta_0, A, f, gamma, Lambda, mu, 
        
 
     while t < max_time and I > 0:
-            # Rest of the code is similar]
         current_beta = beta_t(t, beta_0, A, f)
         N = S + I + R
 
@@ -36,7 +35,6 @@ def GA_with_demography_and_forcing(S0, I0, R0, beta_0, A, f, gamma, Lambda, mu, 
 
         # Determine which event occurs
         r = np.random.random() * a0
-        # ... [same event determination logic as before]
 
         # Store results
         times.append(t)
