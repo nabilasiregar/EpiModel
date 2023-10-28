@@ -4,64 +4,78 @@ import numpy as np
 import matplotlib.pyplot as plt
 import ndlib.models.ModelConfig as mc
 import ndlib.models.epidemics as ep
+import random
 import pdb
 
-data = open('../transmission_network.csv', 'rb')
-graph = nx.read_multiline_adjlist(data, delimiter=';', nodetype=int)
-pdb.set_trace()
+data = pd.read_csv('../transmission_network.csv', delimiter=';', index_col=0) 
 
-# for i, row in enumerate(adj_matrix):
-#     source = node_labels[i]
-#     for j, weight in enumerate(row):
-#         target = node_labels[j]
-#         if weight > 0:  # only edges with positive weights
-#             G.add_edge(source, target, weight=weight)
+G = nx.Graph()
+G.add_nodes_from(data.index.tolist())
+G.add_nodes_from(data.columns.astype(int).tolist())
 
-# # Model selection
-# model = ep.SIRModel(G)
+rows = data.index.tolist()
+columns = data.columns.astype(int).tolist()
 
-# # Model Configuration
-# config = mc.Configuration()
-# config.add_model_parameter('beta', 0.01)
-# config.add_model_parameter('gamma', 0.005)
-# config.add_model_parameter("fraction_infected", 0.2) 
+if G.number_of_nodes() != 374:
+    raise ValueError("The number of nodes is not 364.")
 
-# model.set_initial_status(config)
+for i, row in enumerate(rows):
+    for j, col in enumerate(columns):
+        value = data.iloc[i, j]
+        if value > 0:
+            G.add_edge(row, col, weight=value)
+            
+if  G.number_of_edges() != 1265:
+    raise ValueError("The number of edges is not 1265.")
 
-# # Simulation execution
-# iterations = model.iteration_bunch(200)
+def dynamic_vaccination_strategy(graph, model, budget, vaccination_budget, test_accuracy):
+    node_degrees = dict(graph.degree())
+    sorted_nodes_by_high_degree = sorted(node_degrees, key=node_degrees.get, reverse=True)
 
-# class Graph:
-#     def __init__(self, num_of_nodes):
-#         self.num_of_nodes = num_of_nodes
+    tests_run = 0
 
-#     def barabasi_albert(self, num_of_edges):
-#         return nx.barabasi_albert_graph(self.num_of_nodes, num_of_edges)
+    while tests_run < budget:
+        for node in sorted_nodes_by_high_degree:
+            if tests_run < budget:
+                if random.random() < test_accuracy:
+                    node_status = model.status[node]
+                    # If the node is susceptible, vaccinate
+                    if node_status == 0:
+                        model.status[node] = 2  # Move to removed state
+                        tests_run += 1
+            else:
+                break
 
-#     def watts_strogatz(self, k_nearest_neighbors, rewiring_probability):
-#         return nx.watts_strogatz_graph(self.num_of_nodes, k_nearest_neighbors, rewiring_probability)
+def run_simulation(graph, total_tests, vaccination_budget, test_accuracy):
+    model = ep.SIRModel(graph)
+    config = mc.Configuration()
+    config.add_model_parameter('beta', 0.3)
+    config.add_model_parameter('gamma', 0.1)
+    config.add_model_initial_configuration("Infected", random.sample(list(graph.nodes()), 5))
+    model.set_initial_status(config)
+    
+    dynamic_vaccination_strategy(graph, model, total_tests, vaccination_budget, test_accuracy)
+    iterations = model.iteration_bunch(200)
+    infected_dynamic = sum([it['node_count'][1] for it in iterations]) / 200
+    
+    # Random strategy
+    model.reset()
+    model.set_initial_status(config)
+    for _ in range(vaccination_budget):
+        random_node = random.choice(list(graph.nodes()))
+        model.status[random_node] = 2
+    iterations = model.iteration_bunch(200)
+    infected_random = sum([it['node_count'][1] for it in iterations]) / 200
 
-#     def erdos_renyi(self, edge_creation_probability):
-#         return nx.erdos_renyi_graph(self.num_of_nodes, edge_creation_probability)
+    return infected_dynamic, infected_random
 
-# def get_cumulative_status(time_step):
-#     all_status = {}
-#     for t in range(time_step + 1):
-#         all_status.update(iterations[t]['status'])
-#     return all_status
+budgets = [1, 3, 5, 10]
+accuracies = [0.5, 0.75, 1.0]
 
-# def show_graph(time_step):
-#     current_status = get_cumulative_status(time_step)
-#     colors = [ "green" if current_status.get(node) == 2 
-#                else "red" if current_status.get(node) == 1 
-#                else "yellow" for node in G.nodes()]
-
-#     nx.draw(model, node_color=colors, with_labels=False)
-#     plt.show()
-
-# # Usage
-# time_step = 3
-
-# show_graph(time_step)
-
+for budget in budgets:
+    for accuracy in accuracies:
+        dynamic_infected, random_infected = run_simulation(G, 200, budget, accuracy)
+        print(f"Budget: {budget}, Accuracy: {accuracy}")
+        print(f"Dynamic Vaccination Strategy Average Infected: {dynamic_infected}")
+        print(f"Random Strategy Average Infected: {random_infected}")
 
