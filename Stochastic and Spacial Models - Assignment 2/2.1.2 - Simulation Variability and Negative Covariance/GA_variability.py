@@ -113,7 +113,6 @@ for beta in beta_values:
 
         # Covariance experiment
         start_time = 0
-        end_time = 10
         start_index = np.where(t >= start_time)[0][0]
         end_index = np.where(t <= end_time)[0][-1] + 1
 
@@ -173,7 +172,7 @@ for i, res in enumerate(results):
     
     first_plot = False
 
-# Adjust layout to prevent overlap and add more space between plots
+# Plot settings
 plt.tight_layout()
 plt.subplots_adjust(left=0.1, right=0.9, top=0.9, bottom=0.1, wspace=0.3, hspace=0.5)
 
